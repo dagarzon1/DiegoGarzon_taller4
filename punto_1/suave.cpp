@@ -1,41 +1,64 @@
 #include <math.h>
 #include <complex>
-#include <vector>
 #include <png.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
 
 using namespace std;
 
-vector< vector<double> > FT(vector< vector <double> >& y, int inverse);
-vector< vector<int> > readimage(char *filename);
+double ** FT(int ** y, int inverse, int M, int N);
+int ** read_image(char *filename,int * height, int * width);
+double ** GS(int s, int m, int n);
 int main()
 {
+//n es filas
+int n;
+//m es columnas
+int m;
+int ** mat = read_image("prueba.png",&m,&n);
+
+double ** f = FT(mat,0,m,n);
+
+
 
 return 0;
 }
-vector< vector<double> > FT(vector< vector<double> >& y, int inverse)
+double ** FT(int ** y, int inverse, int M, int N)
 {
-	int M= y.size();
-	int N= y[0].size();
-	vector< vector< complex<double> > > res(M, vector< complex<double> >(N,0) );
-	vector< vector<double> > trans(M, vector < double > (N,0) );
+	//Matriz con N filas y M columnas
+	complex<double> ** res= new complex<double>*[N];
+	for(int i=0;i<N;i++)
+	{
+		res[i]=new complex<double>[M];
+	}
+
+	double ** trans= new double*[N];
+	for(int i=0;i<N;i++)
+	{
+		trans[i]=new double[M];
+	}
+
 	double inv=-1.0;
 	if (inverse==1)
 	{
 		inv=1.0;
 	}
+
 	double com=inv*2.0;
 	double pi = acos(-1);
 	int k,l;
-	for(k=0,l=0;k<M || l<N;k++,l++)
+	for(k=0,l=0;k<N || l<M;k++,l++)
 	{	
 			complex<double> t=(0.0,0.0);
 			int n,m;
-			for(m=0,n=0;m<M || n<N;n++,m++)
+			for(m=0,n=0;m<N;m++)
 			{
-				double fo = com * pi * ((m*k/M)+(n*l/N));
-				t = t + (y[m][n] * polar(1.0,fo));
+				for(n=0;n<M;n++)
+				{
+					double fo = com * pi * ((m*k/M)+(n*l/N));
+					t = t + ( (double) y[n][m] * polar(1.0,fo));
+				}
 			}
 			res[k][l]=t;
 			double r=abs(res[k][l] / ((double)N *(double)M ) );
@@ -43,7 +66,7 @@ vector< vector<double> > FT(vector< vector<double> >& y, int inverse)
 	}
 	return trans;
 }
-vector< vector<int> > read_image(char *filename)
+int ** read_image(char *filename, int * height, int *width)
 {	
 	FILE * f;
 	int bit, color, bytes;
@@ -58,8 +81,11 @@ vector< vector<int> > read_image(char *filename)
 	png_read_png(ptr,info,0,0);
 	png_get_IHDR(ptr,info, &w, &h, &bit, &color, NULL, NULL, NULL);
 	filas=png_get_rows(ptr, info);
-	bytes=png_get_rowbytes(ptr,info);
-	vector< vector<int> > img(h, vector < int > (w,0) );
+	int ** img=new int*[h];
+	for(int i=0;i<h;i++)
+	{
+		img[i]=new int[w];
+	}
 	for(int i=0;i<h;i++)
 	{
 		for(int j=0;j<w;j++)
@@ -67,8 +93,44 @@ vector< vector<int> > read_image(char *filename)
 			img[i][j]=filas[i][j];
 		}
 	}
+	*height=h;
+	*width=w;
 	fclose(f);
-	return img;
-	
+	return img;	
 }
+double ** GS(int s, int m, int n)
+{
+	double pi=3.14159265359;
+	double c=1.0 / ( s * pow( 2.0 * pi , 0.5 ) );
+	double * G1=new double[m];
+	double * G2=new double[n];
+	double X1=0.0;
+	double X2=0.0;
+	double inicio=-20;
+	double S1=40/m;
+	double S2=40/n;
+	int i,j;
+	for(i=0,j=0;i<m || j<n;j++,i++)
+	{	
+		X1=inicio+( i * S1 );
+		X2=inicio+( j * S2 );
+		G1[i]=c * exp( - pow( X1 , 2 ) / ( 2.0 * pow( s , 2 ) ) );
+		G2[j]=c * exp( - pow( X2 , 2 ) / ( 2.0 * pow( s , 2 ) ) );
+	}
+	double ** GS=new double * [m];
+	for(int i=0;i<m;i++)
+	{
+		GS[i]=new double[n];
+	}
+	for(int i=0;i<n;i++)
+	{
+		for(int j=0;j<m;j++)
+		{
+			GS[j][i]= G2[i] * G1[j];
+		}
+	}
+	return GS;
+}
+
+
 
