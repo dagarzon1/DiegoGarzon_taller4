@@ -9,7 +9,8 @@ using namespace std;
 
 double ** FT(int ** y, int inverse, int M, int N);
 int ** read_image(char *filename,int * height, int * width);
-double ** GS(int s, int m, int n);
+double ** GS(double s, int m, int n);
+void imp_m(double ** y,int n, int m);
 int main()
 {
 //n es filas
@@ -18,21 +19,18 @@ int n;
 int m;
 int ** mat = read_image("prueba.png",&m,&n);
 
-double ** f = FT(mat,0,m,n);
+//double ** f = FT(mat,0,m,n);
 
+double ** G = GS(5,m,n);
 
+//imp_m(f,n,m);
+//imp_m(G,n,m);
 
 return 0;
 }
 double ** FT(int ** y, int inverse, int M, int N)
 {
 	//Matriz con N filas y M columnas
-	complex<double> ** res= new complex<double>*[N];
-	for(int i=0;i<N;i++)
-	{
-		res[i]=new complex<double>[M];
-	}
-
 	double ** trans= new double*[N];
 	for(int i=0;i<N;i++)
 	{
@@ -48,21 +46,23 @@ double ** FT(int ** y, int inverse, int M, int N)
 	double com=inv*2.0;
 	double pi = acos(-1);
 	int k,l;
-	for(k=0,l=0;k<N || l<M;k++,l++)
+	for(k=0;k<N;k++)
 	{	
-			complex<double> t=(0.0,0.0);
-			int n,m;
-			for(m=0,n=0;m<N;m++)
+			for(l=0;;l<M,l++)
 			{
-				for(n=0;n<M;n++)
+				complex<double> t=(0.0,0.0);
+				int n,m;
+				for(m=0;m<N;m++)
 				{
-					double fo = com * pi * ((m*k/M)+(n*l/N));
-					t = t + ( (double) y[n][m] * polar(1.0,fo));
+					for(n=0;n<M;n++)
+					{
+						double fo = com * pi * ((m*k/M)+(n*l/N));
+						t = t + ( (double) y[n][m] * polar(1.0,fo));
+					}
 				}
+				double r=abs(t / ((double)N *(double)M ) );
+				trans[k][l]=r;
 			}
-			res[k][l]=t;
-			double r=abs(res[k][l] / ((double)N *(double)M ) );
-			trans[k][l]=r;
 	}
 	return trans;
 }
@@ -98,7 +98,7 @@ int ** read_image(char *filename, int * height, int *width)
 	fclose(f);
 	return img;	
 }
-double ** GS(int s, int m, int n)
+double ** GS(double s, int m, int n)
 {
 	double pi=3.14159265359;
 	double c=1.0 / ( s * pow( 2.0 * pi , 0.5 ) );
@@ -127,9 +127,20 @@ double ** GS(int s, int m, int n)
 		for(int j=0;j<m;j++)
 		{
 			GS[j][i]= G2[i] * G1[j];
+			cout<<GS[j][i]<<endl;
 		}
 	}
 	return GS;
+}
+void imp_m(double ** y,int n,int m)
+{
+	for(int i=0;i<m;i++)
+	{
+		for(int j=0;j<n;j++)
+		{
+			cout<<y[i][j]<<" "<<j<<" "<<i<<endl;
+		}
+	}
 }
 
 
