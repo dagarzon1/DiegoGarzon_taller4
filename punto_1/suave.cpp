@@ -13,20 +13,20 @@ double ** GS(double s, int m, int n);
 void imp_m(double ** y,int n, int m);
 double ** conv(double ** x , double ** y, int m, int n);
 double ** FT1(double ** y, int inverse, int M, int N);
-int main()
+void write_image(char *filen, int h, int w, int bit, int color, double ** y);
+int main(int argc,char ** argv)
 {
 //n es columnas
 int n,bit,color;
 //m es filas
 int m;
-int ** mat = read_image("prueba.png",&m,&n,&bit,&color);
-double ** G = GS(1,m,n);
+int ** mat = read_image(argv[1],&m,&n,&bit,&color);
+double ** G = GS(atof(argv[2]),m,n);
 double ** f = FT(mat,0,m,n);
 double ** f_1 = FT1(G,0,m,n);
 double ** c = conv(f,f_1,m,n);
 double ** r = FT1(c,1,m,n);
-
-imp_m(r,n,m);
+write_image("suave.png", m, n, bit, color, r);
 
 return 0;
 }
@@ -66,10 +66,10 @@ double ** FT1(double ** y, int inverse, int M, int N)
 			e_2[k]=polar(1.0,f);
 		}	
 	}
-	complex<double> ** e = new complex<double> * [N];
-	for(int i =0;i<N;i++)
+	complex<double> ** e = new complex<double> * [M];
+	for(int i =0;i<M;i++)
 	{
-		e[i]=new complex<double>[M];
+		e[i]=new complex<double>[N];
 	}
 	for(int i=0;i<N;i++)
 	{
@@ -78,21 +78,26 @@ double ** FT1(double ** y, int inverse, int M, int N)
 			e[j][i]= e_2[i] * e_1[j]/c;
 		}
 	}
-	for(int k=0;k<M;k++)
-	{	
+	complex<double> ** res = new complex<double> * [M];
+	for(int i =0;i<M;i++)
+	{
+		res[i]=new complex<double>[N];
+	}
+	for(int i=0;i<M;i++)
+	{
+		complex<double> t;
+		for(int j=0;j<N;j++)
+		{
+			res[i][j]= (double)y[i][j] * e[i][j];		
+		}
+		t=0.0;
+		for(int k=0;k<M;k++)
+		{	
 			for(int l=0;l<N;l++)
 			{
-				complex<double> t=0.0;
-				for(int m=0;m<M;m++)
-				{
-					for(int n=0;n<N;n++)
-						{
-							t= t + ( (double) y[m][n] * e[m][n] );
-						}
-				}
-				trans[k][l]=abs( t );
+				trans[k][l]= abs( trans[k][l] + res[k][l] );
 			}
-	}
+		}}
 	return trans;
 }
 double ** FT(int ** y, int inverse, int M, int N)
@@ -131,10 +136,10 @@ double ** FT(int ** y, int inverse, int M, int N)
 			e_2[k]=polar(1.0,f);
 		}	
 	}
-	complex<double> ** e = new complex<double> * [N];
-	for(int i =0;i<N;i++)
+	complex<double> ** e = new complex<double> * [M];
+	for(int i =0;i<M;i++)
 	{
-		e[i]=new complex<double>[M];
+		e[i]=new complex<double>[N];
 	}
 	for(int i=0;i<N;i++)
 	{
@@ -143,21 +148,26 @@ double ** FT(int ** y, int inverse, int M, int N)
 			e[j][i]= e_2[i] * e_1[j]/c;
 		}
 	}
-	for(int k=0;k<M;k++)
-	{	
+	complex<double> ** res = new complex<double> * [M];
+	for(int i =0;i<M;i++)
+	{
+		res[i]=new complex<double>[N];
+	}
+	for(int i=0;i<M;i++)
+	{
+		complex<double> t;
+		for(int j=0;j<N;j++)
+		{
+			res[i][j]= (double)y[i][j] * e[i][j];		
+		}
+		t=0.0;
+		for(int k=0;k<M;k++)
+		{	
 			for(int l=0;l<N;l++)
 			{
-				complex<double> t=0.0;
-				for(int m=0;m<M;m++)
-				{
-					for(int n=0;n<N;n++)
-						{
-							t= t + ( (double) y[m][n] * e[m][n] );
-						}
-				}
-				trans[k][l]=abs( t );
+				trans[k][l]= abs( trans[k][l] + res[k][l]);
 			}
-	}
+		}}
 	return trans;
 }
 int ** read_image(char *filename, int * height, int *width,int *b, int *co)
@@ -201,23 +211,13 @@ void write_image(char *filen, int h, int w, int bit, int color, double ** y)
 	png_infop info;
 	ptr=png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	info=png_create_info_struct(ptr);
-	pg_init_io(ptr,f);
+	png_init_io(ptr,f);
 	png_set_IHDR(ptr,info,w,h,bit,color,PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,PNG_FILTER_TYPE_DEFAULT);
 	png_write_info(ptr,info);
-	int ** img=new int*[h];
-	for(int i=0;i<h;i++)
-	{
-		img[i]=new int[w];
-	}
-	for(int i=0;i<h;i++)
-	{
-		for(int j=0;j<w;j++)
-		{
-			img[i][j]=(int) y[i][j];
-		}
-	}
+	png_bytepp img=(png_bytepp) y;
 	png_write_image(ptr,img);
-	png_write_end(ptr,NULL); 	
+	png_write_end(ptr,NULL); 
+	fclose(f);	
 }
 double ** GS(double s, int m, int n)
 {
