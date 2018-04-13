@@ -8,65 +8,159 @@
 using namespace std;
 
 double ** FT(int ** y, int inverse, int M, int N);
-int ** read_image(char *filename,int * height, int * width);
+int ** read_image(char *filename,int * height, int * width, int *b, int *co);
 double ** GS(double s, int m, int n);
 void imp_m(double ** y,int n, int m);
+double ** conv(double ** x , double ** y, int m, int n);
+double ** FT1(double ** y, int inverse, int M, int N);
 int main()
 {
-//n es filas
-int n;
-//m es columnas
+//n es columnas
+int n,bit,color;
+//m es filas
 int m;
-int ** mat = read_image("prueba.png",&m,&n);
+int ** mat = read_image("prueba.png",&m,&n,&bit,&color);
+double ** G = GS(1,m,n);
+double ** f = FT(mat,0,m,n);
+double ** f_1 = FT1(G,0,m,n);
+double ** c = conv(f,f_1,m,n);
+double ** r = FT1(c,1,m,n);
 
-//double ** f = FT(mat,0,m,n);
-
-double ** G = GS(5,m,n);
-
-//imp_m(f,n,m);
-//imp_m(G,n,m);
+imp_m(r,n,m);
 
 return 0;
 }
-double ** FT(int ** y, int inverse, int M, int N)
+double ** FT1(double ** y, int inverse, int M, int N)
 {
-	//Matriz con N filas y M columnas
-	double ** trans= new double*[N];
-	for(int i=0;i<N;i++)
-	{
-		trans[i]=new double[M];
-	}
 
 	double inv=-1.0;
+	double c=M*N;
 	if (inverse==1)
 	{
 		inv=1.0;
 	}
-
 	double com=inv*2.0;
 	double pi = acos(-1);
-	int k,l;
-	for(k=0;k<N;k++)
+	//Matriz con M filas y N columnas	
+	double ** trans= new double*[M];
+	for(int i=0;i<M;i++)
+	{
+		trans[i]=new double[N];
+	}
+	complex<double> * e_1 = new complex<double> [M];
+	complex<double> * e_2 = new complex<double> [N];
+	
+	for(int k=0;k<M;k++)
+	{
+		for(int m=0;m<M;m++)
+		{
+			double f=com * pi * (m*k/M);
+			e_1[k]=polar(1.0,f);
+		}	
+	}
+	for(int k=0;k<N;k++)
+	{
+		for(int m=0;m<N;m++)
+		{
+			double f=com * pi * (m*k/N);
+			e_2[k]=polar(1.0,f);
+		}	
+	}
+	complex<double> ** e = new complex<double> * [N];
+	for(int i =0;i<N;i++)
+	{
+		e[i]=new complex<double>[M];
+	}
+	for(int i=0;i<N;i++)
+	{
+		for(int j=0;j<M;j++)
+		{
+			e[j][i]= e_2[i] * e_1[j]/c;
+		}
+	}
+	for(int k=0;k<M;k++)
 	{	
-			for(l=0;;l<M,l++)
+			for(int l=0;l<N;l++)
 			{
-				complex<double> t=(0.0,0.0);
-				int n,m;
-				for(m=0;m<N;m++)
+				complex<double> t=0.0;
+				for(int m=0;m<M;m++)
 				{
-					for(n=0;n<M;n++)
-					{
-						double fo = com * pi * ((m*k/M)+(n*l/N));
-						t = t + ( (double) y[n][m] * polar(1.0,fo));
-					}
+					for(int n=0;n<N;n++)
+						{
+							t= t + ( (double) y[m][n] * e[m][n] );
+						}
 				}
-				double r=abs(t / ((double)N *(double)M ) );
-				trans[k][l]=r;
+				trans[k][l]=abs( t );
 			}
 	}
 	return trans;
 }
-int ** read_image(char *filename, int * height, int *width)
+double ** FT(int ** y, int inverse, int M, int N)
+{
+
+	double inv=-1.0;
+	double c=M*N;
+	if (inverse==1)
+	{
+		inv=1.0;
+	}
+	double com=inv*2.0;
+	double pi = acos(-1);
+	//Matriz con M filas y N columnas	
+	double ** trans= new double*[M];
+	for(int i=0;i<M;i++)
+	{
+		trans[i]=new double[N];
+	}
+	complex<double> * e_1 = new complex<double> [M];
+	complex<double> * e_2 = new complex<double> [N];
+	
+	for(int k=0;k<M;k++)
+	{
+		for(int m=0;m<M;m++)
+		{
+			double f=com * pi * (m*k/M);
+			e_1[k]=polar(1.0,f);
+		}	
+	}
+	for(int k=0;k<N;k++)
+	{
+		for(int m=0;m<N;m++)
+		{
+			double f=com * pi * (m*k/N);
+			e_2[k]=polar(1.0,f);
+		}	
+	}
+	complex<double> ** e = new complex<double> * [N];
+	for(int i =0;i<N;i++)
+	{
+		e[i]=new complex<double>[M];
+	}
+	for(int i=0;i<N;i++)
+	{
+		for(int j=0;j<M;j++)
+		{
+			e[j][i]= e_2[i] * e_1[j]/c;
+		}
+	}
+	for(int k=0;k<M;k++)
+	{	
+			for(int l=0;l<N;l++)
+			{
+				complex<double> t=0.0;
+				for(int m=0;m<M;m++)
+				{
+					for(int n=0;n<N;n++)
+						{
+							t= t + ( (double) y[m][n] * e[m][n] );
+						}
+				}
+				trans[k][l]=abs( t );
+			}
+	}
+	return trans;
+}
+int ** read_image(char *filename, int * height, int *width,int *b, int *co)
 {	
 	FILE * f;
 	int bit, color, bytes;
@@ -95,8 +189,35 @@ int ** read_image(char *filename, int * height, int *width)
 	}
 	*height=h;
 	*width=w;
+	*b=bit;
+	*co=color;
 	fclose(f);
 	return img;	
+}
+void write_image(char *filen, int h, int w, int bit, int color, double ** y)
+{
+	FILE *f=fopen(filen, "wb");
+	png_structp ptr;
+	png_infop info;
+	ptr=png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	info=png_create_info_struct(ptr);
+	pg_init_io(ptr,f);
+	png_set_IHDR(ptr,info,w,h,bit,color,PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,PNG_FILTER_TYPE_DEFAULT);
+	png_write_info(ptr,info);
+	int ** img=new int*[h];
+	for(int i=0;i<h;i++)
+	{
+		img[i]=new int[w];
+	}
+	for(int i=0;i<h;i++)
+	{
+		for(int j=0;j<w;j++)
+		{
+			img[i][j]=(int) y[i][j];
+		}
+	}
+	png_write_image(ptr,img);
+	png_write_end(ptr,NULL); 	
 }
 double ** GS(double s, int m, int n)
 {
@@ -107,14 +228,16 @@ double ** GS(double s, int m, int n)
 	double X1=0.0;
 	double X2=0.0;
 	double inicio=-20;
-	double S1=40/m;
-	double S2=40/n;
-	int i,j;
-	for(i=0,j=0;i<m || j<n;j++,i++)
+	double S1=40.0/m;
+	double S2=40.0/n;
+	for(int i=0;i<m;i++)
 	{	
 		X1=inicio+( i * S1 );
-		X2=inicio+( j * S2 );
 		G1[i]=c * exp( - pow( X1 , 2 ) / ( 2.0 * pow( s , 2 ) ) );
+	}
+	for(int j=0;j<n;j++)
+	{
+		X2=inicio+( j * S2 );
 		G2[j]=c * exp( - pow( X2 , 2 ) / ( 2.0 * pow( s , 2 ) ) );
 	}
 	double ** GS=new double * [m];
@@ -127,7 +250,6 @@ double ** GS(double s, int m, int n)
 		for(int j=0;j<m;j++)
 		{
 			GS[j][i]= G2[i] * G1[j];
-			cout<<GS[j][i]<<endl;
 		}
 	}
 	return GS;
@@ -138,9 +260,26 @@ void imp_m(double ** y,int n,int m)
 	{
 		for(int j=0;j<n;j++)
 		{
-			cout<<y[i][j]<<" "<<j<<" "<<i<<endl;
+			cout<<y[i][j]<<" ";
+		}
+		cout<<endl;
+	}
+}
+double ** conv(double ** x , double ** y, int m, int n)
+{
+	double ** S=new double * [m];
+	for(int i=0;i<m;i++)
+	{
+		S[i]=new double[n];
+	}
+	for(int i=0;i<m;i++)
+	{
+		for(int j=0;j<n;j++)
+		{
+			S[i][j] = x[i][j] * y[i][j];
 		}
 	}
+	return S;
 }
 
 
