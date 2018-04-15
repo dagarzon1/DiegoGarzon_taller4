@@ -1,2 +1,2 @@
 filtro:
-	c++ filtro.cpp -o filtro
+	c++ filtro.cpp -lpng16 -lz -lm -o filtro

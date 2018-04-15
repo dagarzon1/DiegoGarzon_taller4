@@ -8,30 +8,71 @@
 
 using namespace std;
 
-double ** FT(int ** y, int inverse, int M, int N, double ** freq);
-int ** read_image(char *filename,int * height, int * width, int *b, int *co);
+double ** FT(double ** y, int inverse, int M, int N, double ** freq);
+double ** read_image(char *filename,int * height, int * width, int *b, int *co);
 void write_image(char *filen, int h, int w, int bit, int color, double ** y);
 double ** FT1(double ** y, int inverse, int M, int N, double ** freq);
-double ** filter(double ** y, double ** freq, int M, int N, string ftr);
+double ** filter(double ** y, double ** freq, int M, int N, int ftr);
 int main(int argc,char ** argv)
 {
 	//n es columnas
 	int n,bit,color;
 	//m es filas
 	int m;
-	int ** mat = read_image(argv[1],&m,&n,&bit,&color);
-	double ** f= new double*[M];
-	for(int i=0;i<M;i++)
+	double ** mat = read_image(argv[1],&m,&n,&bit,&color);
+	double ** f= new double*[m];
+	for(int i=0;i<m;i++)
 	{
-		f[i]=new double[N];
+		f[i]=new double[n];
 	}
 	double ** imgft = FT(mat,0,m,n,f);
-	double ** imgfft = filter(imgft,f,m,n,atof(argv[2]));
-	double ** r = FT1(imgffr,1,m,n,f);
-	
-	
-	
+	if(strcmp(argv[2],"alto")==0)
+	{
+		double ** imgfft = filter(imgft,f,m,n,1);
+		double ** r = FT(imgfft,1,m,n,f);
+		write_image("altas.png", m,n,bit, color, r);
+	}
+	if(strcmp(argv[2],"bajo")==0)
+	{
+		double ** imgfft = filter(imgft,f,m,n,0);
+		double ** r = FT(imgfft,1,m,n,f);
+		write_image("bajas.png", m,n,bit, color, r);
+	}
 	return 0;
+}
+double ** read_image(char *filename, int * height, int *width,int *b, int *co)
+{	
+	FILE * f;
+	int bit, color, bytes;
+	png_uint_32 w,h;
+	png_structp ptr;
+	png_infop info;
+	png_bytepp filas;
+	f= fopen(filename,"r");
+	ptr=png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	info=png_create_info_struct(ptr);
+	png_init_io(ptr,f);
+	png_read_png(ptr,info,0,0);
+	png_get_IHDR(ptr,info, &w, &h, &bit, &color, NULL, NULL, NULL);
+	filas=png_get_rows(ptr, info);
+	double ** img=new double*[h];
+	for(int i=0;i<h;i++)
+	{
+		img[i]=new double[w];
+	}
+	for(int i=0;i<h;i++)
+	{
+		for(int j=0;j<w;j++)
+		{
+			img[i][j]=(double) (int) filas[i][j];
+		}
+	}
+	*height=h;
+	*width=w;
+	*b=bit;
+	*co=color;
+	fclose(f);
+	return img;	
 }
 void write_image(char *filen, int h, int w, int bit, int color, double ** y)
 {
@@ -48,84 +89,7 @@ void write_image(char *filen, int h, int w, int bit, int color, double ** y)
 	png_write_end(ptr,NULL); 
 	fclose(f);	
 }
-double ** FT1(int ** y, int inverse, int M, int N, double ** freq)
-{
-	double inv=-1.0;
-	double c=M*N;
-	if (inverse==1)
-	{
-		inv=1.0;
-	}
-	double com=inv*2.0;
-	double pi = acos(-1);
-	//Matriz con M filas y N columnas	
-	double ** trans= new double*[M];
-	for(int i=0;i<M;i++)
-	{
-		trans[i]=new double[N];
-	}
-	complex<double> * e_1 = new complex<double> [M];
-	complex<double> * e_2 = new complex<double> [N];
-	
-	for(int k=0;k<M;k++)
-	{
-		for(int m=0;m<M;m++)
-		{
-			double f=com * pi * (m*k/M);
-			e_1[k]=polar(1.0,f);
-		}	
-	}
-	for(int k=0;k<N;k++)
-	{
-		for(int m=0;m<N;m++)
-		{
-			double f=com * pi * (m*k/N);
-			e_2[k]=polar(1.0,f);
-		}	
-	}
-	complex<double> ** e = new complex<double> * [M];
-	for(int i =0;i<M;i++)
-	{
-		e[i]=new complex<double>[N];
-	}	
-	for(int i=0;i<N;i++)
-	{
-		for(int j=0;j<M;j++)
-		{
-			e[j][i]= e_2[i] * e_1[j]/c;
-		}
-	}
-	for(int i=0;i<M;i++)
-	{
-		for(int j=0;j<N;j++)
-		{
-			freq[i][j]= 1.0 / arg(e[i][j]);
-		}
-	}
-	complex<double> ** res = new complex<double> * [M];
-	for(int i =0;i<M;i++)
-	{
-		res[i]=new complex<double>[N];
-	}
-	for(int i=0;i<M;i++)
-	{
-		complex<double> t;
-		for(int j=0;j<N;j++)
-		{
-			res[i][j]= (double)y[i][j] * e[i][j];		
-		}
-		t=0.0;
-		for(int k=0;k<M;k++)
-		{	
-			for(int l=0;l<N;l++)
-			{
-				trans[k][l]= abs( trans[k][l] + res[k][l] );
-			}
-		}
-	}
-	return trans;
-}
-double ** FT(int ** y, int inverse, int M, int N, double ** freq)
+double ** FT(double ** y, int inverse, int M, int N, double ** freq)
 {
 
 	double inv=-1.0;
@@ -190,7 +154,7 @@ double ** FT(int ** y, int inverse, int M, int N, double ** freq)
 		complex<double> t;
 		for(int j=0;j<N;j++)
 		{
-			res[i][j]= (double)y[i][j] * e[i][j];		
+			res[i][j]= y[i][j] * e[i][j];		
 		}
 		t=0.0;
 		for(int k=0;k<M;k++)
@@ -202,12 +166,12 @@ double ** FT(int ** y, int inverse, int M, int N, double ** freq)
 		}}
 	return trans;
 }
-double ** filter(double ** y, double ** freq, int M, int N, string ftr)
+double ** filter(double ** y, double ** freq, int M, int N, int ftr)
 {
 	int cut=2500;
 	int w=200;
 	double pi = acos(-1);
-	if(strcmp(ftr,"bajo")==0)
+	if(ftr==0)
 	{
 		for(int i=0;i<M;i++)
 		{
@@ -223,12 +187,12 @@ double ** filter(double ** y, double ** freq, int M, int N, string ftr)
 				}
 				else
 				{
-					y[i][j]= 0.5 * ( 1.0 - sin( pi * ( f[i][j] - c ) ) / ( 2.0 * w ) )
+					y[i][j]= 0.5 * ( 1.0 - sin( pi * ( freq[i][j] - cut ) ) / ( 2.0 * w ) );
 				}
 			}
 		}
 	}
-	if(strcmp(ftr,"alto")==0)
+	if(ftr==1)
 	{
 		for(int i=0;i<M;i++)
 		{
@@ -244,7 +208,7 @@ double ** filter(double ** y, double ** freq, int M, int N, string ftr)
 				}
 				else
 				{
-					y[i][j]= 0.5 * ( 1.0 - sin( pi * ( f[i][j] - c ) ) / ( 2.0 * w ) )
+					y[i][j]= 0.5 * ( 1.0 - sin( pi * ( freq[i][j] - cut ) ) / ( 2.0 * w ) );
 				}
 			}
 		}
