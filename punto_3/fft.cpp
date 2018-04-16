@@ -11,28 +11,28 @@ using namespace std;
 int main(int argc,char ** argv)
 {
 	ifstream f;
-	string line, d;
+	string line;
 	f.open(argv[1]);
 	int lin_max=-1;
 	double pi = -2.0 * acos(-1);
 	while(!f.eof())
 	{
-		getline(f,d);
+		getline(f,line);
 		lin_max = lin_max +1;
 	}
 	f.close();
 	f.open(argv[1]);
 	double * t=new double[lin_max];
 	double *f_t=new double[lin_max];
+	string d1=" ";
+	const char* d=d1.c_str();
 	for(int i=0;i<lin_max;i++)
 	{
 		getline(f,line);
-		getline(line,d,' ')
-		const char* chr = d.c_str();
+		char* chr = strtok( strdup(line.c_str()) , d );
 		t[i]=atof(chr);
 		
-		getline(line,d,' ');
-		const char* chr2 = d.c_str();
+		char* chr2 = strtok( strdup(line.c_str()) , d );
 		f_t[i]=atof(chr2);
 	}
 	double * x = new double[lin_max];
