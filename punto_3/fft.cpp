@@ -11,7 +11,7 @@ using namespace std;
 int main(int argc,char ** argv)
 {
 	ifstream f;
-	string d;
+	string line, d;
 	f.open(argv[1]);
 	int lin_max=-1;
 	double pi = -2.0 * acos(-1);
@@ -26,11 +26,12 @@ int main(int argc,char ** argv)
 	double *f_t=new double[lin_max];
 	for(int i=0;i<lin_max;i++)
 	{
-		getline(f,d,' ');
+		getline(f,line);
+		getline(line,d,' ')
 		const char* chr = d.c_str();
 		t[i]=atof(chr);
 		
-		getline(f,d,' ');
+		getline(line,d,' ');
 		const char* chr2 = d.c_str();
 		f_t[i]=atof(chr2);
 	}
