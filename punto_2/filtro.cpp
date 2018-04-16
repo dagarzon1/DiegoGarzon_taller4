@@ -171,6 +171,11 @@ double ** filter(double ** y, double ** freq, int M, int N, int ftr)
 	int cut=2500;
 	int w=200;
 	double pi = acos(-1);
+	double ** fil=new double*[M];
+	for(int i=0;i<M;i++)
+	{
+		fil[i]=new double[N];
+	}
 	if(ftr==0)
 	{
 		for(int i=0;i<M;i++)
@@ -179,15 +184,15 @@ double ** filter(double ** y, double ** freq, int M, int N, int ftr)
 			{
 				if( freq[i][j] < ( cut-w ) )
 				{
-					y[i][j]=1;
+					fil[i][j]=1;
 				}
 				else if( freq[i][j] > ( cut+w ) )
 				{
-					y[i][j]=0;
+					fil[i][j]=0;
 				}
 				else
 				{
-					y[i][j]= 0.5 * ( 1.0 - sin( pi * ( freq[i][j] - cut ) ) / ( 2.0 * w ) );
+					fil[i][j]= 0.5 * ( 1.0 - sin( pi * ( freq[i][j] - cut ) ) / ( 2.0 * w ) );
 				}
 			}
 		}
@@ -200,19 +205,19 @@ double ** filter(double ** y, double ** freq, int M, int N, int ftr)
 			{
 				if( freq[i][j] < ( cut-w ) )
 				{
-					y[i][j]=0;
+					fil[i][j]=0;
 				}
 				else if( freq[i][j] > ( cut+w ) )
 				{
-					y[i][j]=1;
+					fil[i][j]=1;
 				}
 				else
 				{
-					y[i][j]= 0.5 * ( 1.0 - sin( pi * ( freq[i][j] - cut ) ) / ( 2.0 * w ) );
+					fil[i][j]= 0.5 * ( 1.0 - sin( pi * ( freq[i][j] - cut ) ) / ( 2.0 * w ) );
 				}
 			}
 		}
 	}
-	return y;
+	return fil;
 }
 
