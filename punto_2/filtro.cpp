@@ -13,6 +13,7 @@ double ** read_image(char *filename,int * height, int * width, int *b, int *co);
 void write_image(char *filen, int h, int w, int bit, int color, double ** y);
 double ** FT1(double ** y, int inverse, int M, int N, double ** freq);
 double ** filter(double ** y, double ** freq, int M, int N, int ftr);
+double ** conv(double ** x , double ** y, int m, int n);
 int main(int argc,char ** argv)
 {
 	//n es columnas
@@ -28,14 +29,16 @@ int main(int argc,char ** argv)
 	double ** imgft = FT(mat,0,m,n,f);
 	if(strcmp(argv[2],"alto")==0)
 	{
-		double ** imgfft = filter(imgft,f,m,n,1);
-		double ** r = FT(imgfft,1,m,n,f);
+		double ** fil = filter(imgft,f,m,n,1);
+		double ** S= conv( mat , fil , m , n );
+		double ** r = FT(S,1,m,n,f);
 		write_image("altas.png", m,n,bit, color, r);
 	}
 	if(strcmp(argv[2],"bajo")==0)
 	{
-		double ** imgfft = filter(imgft,f,m,n,0);
-		double ** r = FT(imgfft,1,m,n,f);
+		double ** fil = filter(imgft,f,m,n,0);
+		double ** S= conv( mat , fil , m , n );
+		double ** r = FT(S,1,m,n,f);
 		write_image("bajas.png", m,n,bit, color, r);
 	}
 	return 0;
@@ -168,8 +171,8 @@ double ** FT(double ** y, int inverse, int M, int N, double ** freq)
 }
 double ** filter(double ** y, double ** freq, int M, int N, int ftr)
 {
-	int cut=2500;
-	int w=200;
+	int cut=1000;
+	int w=50;
 	double pi = acos(-1);
 	double ** fil=new double*[M];
 	for(int i=0;i<M;i++)
@@ -219,5 +222,21 @@ double ** filter(double ** y, double ** freq, int M, int N, int ftr)
 		}
 	}
 	return fil;
+}
+double ** conv(double ** x , double ** y, int m, int n)
+{
+	double ** S=new double * [m];
+	for(int i=0;i<m;i++)
+	{
+		S[i]=new double[n];
+	}
+	for(int i=0;i<m;i++)
+	{
+		for(int j=0;j<n;j++)
+		{
+			S[i][j] = x[i][j] * y[i][j];
+		}
+	}
+	return S;
 }
 
