@@ -192,9 +192,10 @@ int ** read_image(char *filename, int * height, int *width,int *b, int *co)
 	}
 	for(int i=0;i<h;i++)
 	{
+		png_bytep row= filas[i];
 		for(int j=0;j<w;j++)
 		{
-			img[i][j]=filas[i][j];
+			img[i][j]=(int) row[j*4];
 		}
 	}
 	*height=h;
